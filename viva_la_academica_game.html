@@ -1,0 +1,1308 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Viva La Academica: Kampus Membara 3D</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Lucide Icons untuk estetika visual modern -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Three.js Library untuk Rendering 3D -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: #0b0f19;
+            color: #f3f4f6;
+            user-select: none;
+        }
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #111827;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #374151;
+            border-radius: 3px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #4b5563;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col justify-between overflow-x-hidden custom-scrollbar">
+
+    <!-- HEADER / TOP NAV -->
+    <header class="border-b border-gray-800 bg-gray-900/80 backdrop-blur sticky top-0 z-40 px-4 py-3">
+        <div class="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div class="flex items-center gap-3">
+                <div class="bg-red-600 text-white p-2 rounded-lg animate-pulse">
+                    <i data-lucide="flame" class="w-6 h-6"></i>
+                </div>
+                <div>
+                    <h1 class="text-xl font-extrabold tracking-tight text-white">Viva La Academica</h1>
+                    <p class="text-xs text-red-400 font-semibold tracking-widest uppercase">Kampus Membara - 3D RPG Edition</p>
+                </div>
+            </div>
+            
+            <!-- Hari & Waktu Tracker -->
+            <div class="flex items-center gap-4 bg-gray-950 px-4 py-2 rounded-xl border border-gray-800">
+                <div class="flex items-center gap-2">
+                    <i data-lucide="calendar" class="text-indigo-400 w-4 h-4"></i>
+                    <span class="text-sm font-bold text-gray-200" id="display-hari">Hari 1</span>
+                </div>
+                <div class="h-4 w-[1px] bg-gray-800"></div>
+                <div class="flex items-center gap-2">
+                    <span id="display-fase-icon">
+                        <i data-lucide="sun" class="text-amber-400 w-4 h-4"></i>
+                    </span>
+                    <span class="text-sm font-bold uppercase tracking-wider text-amber-400" id="display-fase">Siang (Eksplorasi)</span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- MAIN GAME WORKSPACE -->
+    <main class="flex-grow max-w-6xl w-full mx-auto px-4 py-6 grid grid-cols-1 lg:grid-cols-12 gap-6">
+        
+        <!-- KIRI: PLAYER & MASSA STATS PANEL (4 COLS) -->
+        <section class="lg:col-span-4 space-y-6">
+            
+            <!-- PANEL KETUA BEM (PEMAIN) -->
+            <div class="bg-gray-900 border border-gray-800 rounded-2xl p-5 shadow-xl relative overflow-hidden">
+                <div class="absolute top-0 right-0 w-24 h-24 bg-indigo-600/10 rounded-full blur-xl"></div>
+                
+                <div class="flex items-center justify-between mb-4">
+                    <div class="flex items-center gap-3">
+                        <div class="w-12 h-12 bg-gradient-to-tr from-indigo-600 to-purple-600 rounded-xl flex items-center justify-center font-bold text-lg text-white shadow-lg relative">
+                            BEM
+                            <span class="absolute -bottom-1 -right-1 bg-amber-500 text-[10px] text-gray-950 px-1.5 rounded-full font-black" id="stat-level">Lv 1</span>
+                        </div>
+                        <div>
+                            <h3 class="font-bold text-white text-base">Ahmad (Ketua BEM)</h3>
+                            <p class="text-xs text-indigo-400 font-semibold" id="stat-xp-display">XP: 0/100</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Stats: AP, Karisma, Integritas -->
+                <div class="space-y-4">
+                    <!-- Action Points -->
+                    <div>
+                        <div class="flex justify-between items-center text-xs mb-1">
+                            <span class="text-gray-300 font-semibold flex items-center gap-1">
+                                <i data-lucide="zap" class="w-4 h-4 text-amber-400 fill-amber-400"></i> Action Points (AP)
+                            </span>
+                            <span class="font-bold text-amber-400 text-sm" id="stat-ap">3 / 3</span>
+                        </div>
+                        <div class="w-full bg-gray-950 rounded-full h-2.5 border border-gray-800">
+                            <div class="bg-amber-400 h-2.5 rounded-full shadow-[0_0_8px_rgba(251,191,36,0.5)] transition-all duration-500" id="bar-ap" style="width: 100%"></div>
+                        </div>
+                    </div>
+
+                    <!-- Karisma -->
+                    <div>
+                        <div class="flex justify-between items-center text-xs mb-1">
+                            <span class="text-gray-300 font-semibold flex items-center gap-1">
+                                <i data-lucide="sparkles" class="w-4 h-4 text-purple-400"></i> Karisma (Daya Tarik)
+                            </span>
+                            <span class="font-bold text-purple-400 text-sm" id="stat-karisma">50 / 100</span>
+                        </div>
+                        <div class="w-full bg-gray-950 rounded-full h-2.5 border border-gray-800">
+                            <div class="bg-purple-500 h-2.5 rounded-full transition-all duration-500" id="bar-karisma" style="width: 50%"></div>
+                        </div>
+                    </div>
+
+                    <!-- Integritas -->
+                    <div>
+                        <div class="flex justify-between items-center text-xs mb-1">
+                            <span class="text-gray-300 font-semibold flex items-center gap-1">
+                                <i data-lucide="heart" class="w-4 h-4 text-emerald-400"></i> Integritas (Ketahanan)
+                            </span>
+                            <span class="font-bold text-emerald-400 text-sm" id="stat-integritas">60 / 100</span>
+                        </div>
+                        <div class="w-full bg-gray-950 rounded-full h-2.5 border border-gray-800">
+                            <div class="bg-emerald-500 h-2.5 rounded-full transition-all duration-500" id="bar-integritas" style="width: 60%"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Inventory / Item Panel -->
+                <div class="mt-6 pt-4 border-t border-gray-800/60">
+                    <h4 class="text-xs font-bold uppercase tracking-wider text-gray-400 mb-3 flex items-center gap-1.5">
+                        <i data-lucide="package" class="w-3.5 h-3.5"></i> Kantong Logistik
+                    </h4>
+                    <div class="grid grid-cols-2 gap-2">
+                        <!-- Kopi Advokasi -->
+                        <button onclick="useItem('kopi')" class="flex flex-col items-start p-2.5 bg-gray-950 hover:bg-gray-800 border border-gray-800 rounded-xl text-left transition-all duration-200 group">
+                            <div class="flex items-center justify-between w-full">
+                                <span class="bg-amber-500/10 p-1 rounded text-amber-400 group-hover:scale-110 transition-transform">
+                                    <i data-lucide="coffee" class="w-4 h-4"></i>
+                                </span>
+                                <span class="text-[10px] bg-gray-800 px-1.5 py-0.5 rounded text-gray-400 font-mono" id="inv-kopi">x2</span>
+                            </div>
+                            <span class="text-xs font-bold text-gray-200 mt-2">Kopi Advokasi</span>
+                            <span class="text-[9px] text-gray-500 mt-0.5">+1 AP</span>
+                        </button>
+
+                        <!-- Megafon Megah -->
+                        <button onclick="useItem('megafon')" class="flex flex-col items-start p-2.5 bg-gray-950 hover:bg-gray-800 border border-gray-800 rounded-xl text-left transition-all duration-200 group">
+                            <div class="flex items-center justify-between w-full">
+                                <span class="bg-blue-500/10 p-1 rounded text-blue-400 group-hover:scale-110 transition-transform">
+                                    <i data-lucide="megaphone" class="w-4 h-4"></i>
+                                </span>
+                                <span class="text-[10px] bg-gray-800 px-1.5 py-0.5 rounded text-gray-400 font-mono" id="inv-megafon">x1</span>
+                            </div>
+                            <span class="text-xs font-bold text-gray-200 mt-2">Megafon Megah</span>
+                            <span class="text-[9px] text-gray-500 mt-0.5">Heal Stamina</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- PANEL GERAKAN MASSA -->
+            <div class="bg-gray-900 border border-gray-800 rounded-2xl p-5 shadow-xl relative overflow-hidden">
+                <div class="absolute top-0 right-0 w-24 h-24 bg-red-600/5 rounded-full blur-xl"></div>
+                
+                <div class="flex items-center justify-between mb-4">
+                    <div class="flex items-center gap-2">
+                        <i data-lucide="users" class="text-red-500 w-5 h-5"></i>
+                        <h3 class="font-bold text-white text-base">Massa Aliansi</h3>
+                    </div>
+                    <span class="text-[10px] font-bold uppercase px-2 py-0.5 rounded bg-red-500/20 text-red-400 border border-red-500/30" id="display-buff">
+                        Belum Bergabung
+                    </span>
+                </div>
+
+                <!-- Detail Massa Stats -->
+                <div class="grid grid-cols-2 gap-3 mb-4">
+                    <div class="bg-gray-950 p-3 rounded-xl border border-gray-800/80">
+                        <span class="text-[11px] text-gray-400 block mb-0.5">Jumlah Personel</span>
+                        <span class="text-lg font-bold text-white animate-pulse" id="stat-massa-jumlah">150 Orang</span>
+                    </div>
+                    <div class="bg-gray-950 p-3 rounded-xl border border-gray-800/80">
+                        <span class="text-[11px] text-gray-400 block mb-0.5">Kedamaian Aksi</span>
+                        <span class="text-lg font-bold text-emerald-400" id="stat-massa-kedamaian">100%</span>
+                    </div>
+                </div>
+
+                <!-- Bars: Aggression & Stamina -->
+                <div class="space-y-4">
+                    <!-- Aggression -->
+                    <div>
+                        <div class="flex justify-between items-center text-xs mb-1">
+                            <span class="text-gray-300 font-semibold flex items-center gap-1">
+                                <i data-lucide="alert-triangle" class="w-4 h-4 text-red-500"></i> Aggression (Amarah)
+                            </span>
+                            <span class="font-bold text-red-500 text-sm" id="stat-massa-aggression">30 / 100</span>
+                        </div>
+                        <div class="w-full bg-gray-950 rounded-full h-2.5 border border-gray-800">
+                            <div class="bg-red-600 h-2.5 rounded-full transition-all duration-500" id="bar-massa-aggression" style="width: 30%"></div>
+                        </div>
+                    </div>
+
+                    <!-- Stamina -->
+                    <div>
+                        <div class="flex justify-between items-center text-xs mb-1">
+                            <span class="text-gray-300 font-semibold flex items-center gap-1">
+                                <i data-lucide="battery-charging" class="w-4 h-4 text-blue-400"></i> Stamina Massa
+                            </span>
+                            <span class="font-bold text-blue-400 text-sm" id="stat-massa-stamina">80 / 100</span>
+                        </div>
+                        <div class="w-full bg-gray-950 rounded-full h-2.5 border border-gray-800">
+                            <div class="bg-blue-500 h-2.5 rounded-full transition-all duration-500" id="bar-massa-stamina" style="width: 80%"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </section>
+
+        <!-- KANAN: WORKSPACE UTAMA (8 COLS) -->
+        <section class="lg:col-span-8 flex flex-col gap-6">
+            
+            <!-- NOTIFIKASI EVENT SYSTEM -->
+            <div id="toast-notif" class="hidden transform translate-y-2 opacity-0 transition-all duration-300 bg-indigo-950/80 border border-indigo-500/30 text-indigo-200 px-4 py-3 rounded-xl flex items-center gap-3 text-sm shadow-lg">
+                <i data-lucide="info" class="text-indigo-400 shrink-0"></i>
+                <span id="toast-text">Perjuangan dimulai!</span>
+            </div>
+
+            <!-- MAIN SCREEN PANEL -->
+            <div class="bg-gray-900 border border-gray-800 rounded-2xl p-6 shadow-xl flex-grow flex flex-col justify-between min-h-[550px]">
+                
+                <!-- HEADER INTERNAL LAYAR GAME -->
+                <div class="border-b border-gray-800 pb-4 mb-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                    <div>
+                        <h2 class="text-lg font-bold text-white flex items-center gap-2" id="screen-title">
+                            <i data-lucide="box" class="text-indigo-400"></i> RPG Eksplorasi Kampus 3D
+                        </h2>
+                        <p class="text-xs text-gray-400" id="screen-subtitle">Kendali: W,A,S,D / Tombol Arah untuk bergerak. Klik & drag layar untuk memutar kamera!</p>
+                    </div>
+                    <!-- Bukti (Evidence Collection Status) -->
+                    <div class="flex items-center gap-2 bg-gray-950 px-3 py-1.5 rounded-lg border border-gray-800">
+                        <i data-lucide="file-text" class="text-red-400 w-4 h-4"></i>
+                        <span class="text-xs font-semibold text-gray-300">Berkas Bukti: <span class="text-red-400 font-bold" id="stat-bukti">0 / 2</span></span>
+                    </div>
+                </div>
+
+                <!-- KONTEN DINAMIS -->
+                <div class="flex-grow flex flex-col justify-center my-2" id="screen-content">
+                    
+                    <!-- SCREEN 1: RPG 3D MAP EXPLORATION -->
+                    <div id="view-rpg-map" class="space-y-4">
+                        <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
+                            
+                            <!-- Area Visual Map (Three.js Canvas) -->
+                            <div class="md:col-span-8 bg-gray-950 border-2 border-gray-800 rounded-xl overflow-hidden relative flex flex-col min-h-[340px]" id="canvas-container-3d">
+                                <!-- Canvas Three.js disuntikkan di sini -->
+                                <div class="absolute top-2 left-2 bg-gray-900/90 text-[10px] text-gray-400 px-2 py-1 rounded border border-gray-800 z-10 flex gap-2">
+                                    <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 bg-blue-500 rounded-full inline-block"></span> Hukum</span>
+                                    <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 bg-red-500 rounded-full inline-block"></span> Teknik</span>
+                                    <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 bg-green-500 rounded-full inline-block"></span> Kantin</span>
+                                    <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 bg-yellow-500 rounded-full inline-block"></span> Arsip</span>
+                                </div>
+                            </div>
+
+                            <!-- Panel Kontrol Layar Sentuh & Navigasi -->
+                            <div class="md:col-span-4 flex flex-col justify-between bg-gray-950/50 border border-gray-800 rounded-xl p-4">
+                                <div class="text-center">
+                                    <h4 class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">Navigasi Kampus 3D</h4>
+                                    <p class="text-[10px] text-gray-500 mb-4">Gunakan keyboard (W,A,S,D) atau tombol di bawah ini:</p>
+                                </div>
+                                
+                                <!-- DPAD BUTTONS -->
+                                <div class="grid grid-cols-3 gap-2 w-36 mx-auto mb-4">
+                                    <div></div>
+                                    <button onmousedown="startMove(0, -1)" onmouseup="stopMove()" onmouseleave="stopMove()" class="bg-gray-800 hover:bg-gray-700 active:bg-indigo-600 text-white font-bold py-2.5 rounded-lg flex items-center justify-center transition-all border border-gray-700">
+                                        <i data-lucide="chevron-up" class="w-5 h-5"></i>
+                                    </button>
+                                    <div></div>
+
+                                    <button onmousedown="startMove(-1, 0)" onmouseup="stopMove()" onmouseleave="stopMove()" class="bg-gray-800 hover:bg-gray-700 active:bg-indigo-600 text-white font-bold py-2.5 rounded-lg flex items-center justify-center transition-all border border-gray-700">
+                                        <i data-lucide="chevron-left" class="w-5 h-5"></i>
+                                    </button>
+                                    <div class="bg-indigo-600/20 rounded-lg flex items-center justify-center text-indigo-400">
+                                        <i data-lucide="navigation" class="w-4 h-4 animate-pulse"></i>
+                                    </div>
+                                    <button onmousedown="startMove(1, 0)" onmouseup="stopMove()" onmouseleave="stopMove()" class="bg-gray-800 hover:bg-gray-700 active:bg-indigo-600 text-white font-bold py-2.5 rounded-lg flex items-center justify-center transition-all border border-gray-700">
+                                        <i data-lucide="chevron-right" class="w-5 h-5"></i>
+                                    </button>
+
+                                    <div></div>
+                                    <button onmousedown="startMove(0, 1)" onmouseup="stopMove()" onmouseleave="stopMove()" class="bg-gray-800 hover:bg-gray-700 active:bg-indigo-600 text-white font-bold py-2.5 rounded-lg flex items-center justify-center transition-all border border-gray-700">
+                                        <i data-lucide="chevron-down" class="w-5 h-5"></i>
+                                    </button>
+                                    <div></div>
+                                </div>
+                                
+                                <div class="text-center">
+                                    <span class="text-[9px] text-gray-400 block leading-tight">Seret mouse di area peta untuk rotasi kamera 3D</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- PANEL DIALOG INTERAKTIF (Bila berada di dekat NPC/Fakultas) -->
+                        <div id="interaction-panel" class="bg-indigo-950/40 border border-indigo-500/20 rounded-xl p-4 flex flex-col justify-between gap-3 min-h-[120px]">
+                            <div class="flex items-start gap-3">
+                                <div class="w-10 h-10 rounded-lg bg-indigo-900 border border-indigo-500/30 flex items-center justify-center font-bold text-white shrink-0" id="npc-avatar">
+                                    ?
+                                </div>
+                                <div class="space-y-1">
+                                    <h4 class="text-xs font-bold text-indigo-300 uppercase tracking-wide" id="npc-name">Papan Informasi Kampus 3D</h4>
+                                    <p class="text-xs text-gray-200 leading-relaxed" id="npc-dialog">"Gunakan tombol navigasi untuk menggerakkan Ahmad mendekati gedung berkubah hologram warna-warni. Setiap kali Anda berinteraksi dengan wilayah atau NPC, akan memakan biaya 1 AP!"</p>
+                                </div>
+                            </div>
+                            <div class="flex justify-end gap-2" id="npc-action-container">
+                                <!-- Tombol aksi dinamis -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- SCREEN 2: MALAM STRATEGI -->
+                    <div id="view-malam" class="hidden space-y-6">
+                        <div class="bg-gray-950 border border-gray-800 p-5 rounded-xl text-center space-y-3">
+                            <div class="w-16 h-16 mx-auto bg-indigo-500/10 rounded-full flex items-center justify-center text-indigo-400">
+                                <i data-lucide="moon" class="w-8 h-8"></i>
+                            </div>
+                            <h3 class="text-base font-bold text-white">Rapat Malam Penentuan Siasat</h3>
+                            <p class="text-xs text-gray-400 max-w-md mx-auto">Suasana sekretariat bersama riuh rendah. Semua berkumpul demi mengevaluasi hasil konsolidasi siang hari ini.</p>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <button onclick="malamStrategi('karisma')" class="bg-gray-950 hover:bg-gray-800 border border-gray-800 hover:border-indigo-500 p-4 rounded-xl text-left transition-all duration-150">
+                                <h4 class="font-bold text-white text-sm mb-1">Susun Narasi & Tuntutan Positif</h4>
+                                <p class="text-xs text-gray-400">Meningkatkan kepercayaan diri perjuangan. (+15 Karisma, +20 XP)</p>
+                            </button>
+                            <button onclick="malamStrategi('massa')" class="bg-gray-950 hover:bg-gray-800 border border-gray-800 hover:border-red-500 p-4 rounded-xl text-left transition-all duration-150">
+                                <h4 class="font-bold text-white text-sm mb-1">Gelar Mimbar Bebas Internal</h4>
+                                <p class="text-xs text-gray-400">Redam rasa takut aliansi mahasiswa. (+25 Stamina Massa, -15 Aggression)</p>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- SCREEN 3: DEBAT SCREEN -->
+                    <div id="view-debat" class="hidden space-y-6">
+                        <!-- Rektorat Header -->
+                        <div class="bg-gray-950 border border-red-900/30 rounded-xl p-4 flex flex-col md:flex-row items-center justify-between gap-4">
+                            <div class="flex items-center gap-3">
+                                <div class="w-12 h-12 bg-red-950 border border-red-500/30 rounded-full flex items-center justify-center text-red-500">
+                                    <i data-lucide="landmark" class="w-6 h-6"></i>
+                                </div>
+                                <div>
+                                    <h4 class="font-bold text-white text-sm">Prof. Dr. Hardi (Wakil Rektor)</h4>
+                                    <p class="text-xs text-gray-400">Pihak Birokrasi Rektorat</p>
+                                </div>
+                            </div>
+                            <!-- Kredibilitas -->
+                            <div class="w-full md:w-1/3">
+                                <div class="flex justify-between items-center text-xs mb-1">
+                                    <span class="text-red-400 font-bold uppercase">Kredibilitas Hardi</span>
+                                    <span class="font-bold text-red-400 text-sm" id="stat-rektorat">100 / 100</span>
+                                </div>
+                                <div class="w-full bg-gray-900 rounded-full h-2 border border-gray-800">
+                                    <div class="bg-red-500 h-2 rounded-full transition-all duration-500" id="bar-rektorat" style="width: 100%"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Debat Box Chat -->
+                        <div class="bg-gray-950 border border-gray-800 rounded-xl p-4 min-h-[180px] flex flex-col justify-between">
+                            <div class="space-y-3">
+                                <div class="flex items-start gap-2.5">
+                                    <span class="bg-red-500/10 text-red-400 text-[10px] font-bold px-2 py-0.5 rounded mt-0.5 uppercase shrink-0">Rektorat:</span>
+                                    <p class="text-sm text-gray-200 italic" id="rektorat-speech">"Kenaikan UKT adalah keputusan final Majelis Wali Amanat. Mohon mahasiswa tertib."</p>
+                                </div>
+                            </div>
+                            <div class="border-t border-gray-800/80 pt-3 mt-4">
+                                <p class="text-xs text-indigo-400 font-bold mb-2">Pilih Strategi Argumen:</p>
+                                <div class="space-y-2" id="debat-options">
+                                    <!-- Dinamis oleh JS -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- SCREEN 4: GAME OVER / WIN -->
+                    <div id="view-result" class="hidden text-center space-y-6 py-6">
+                        <div id="result-icon-container" class="w-20 h-20 mx-auto rounded-full flex items-center justify-center">
+                            <!-- Dinamis -->
+                        </div>
+                        <div class="space-y-2">
+                            <h3 class="text-2xl font-black text-white" id="result-title">Hasil Perjuangan</h3>
+                            <p class="text-sm text-gray-400 max-w-md mx-auto" id="result-desc">Deskripsi.</p>
+                        </div>
+                        <button onclick="resetGame()" class="bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-sm py-2.5 px-6 rounded-xl transition duration-150 inline-flex items-center gap-2 mx-auto">
+                            <i data-lucide="rotate-ccw" class="w-4 h-4"></i> Mulai Ulang RPG
+                        </button>
+                    </div>
+
+                </div>
+
+                <!-- FOOTER / AKSI UTAMA DI LAYAR -->
+                <div class="border-t border-gray-800 pt-4 flex flex-col sm:flex-row items-center justify-between gap-4" id="view-footer">
+                    <p class="text-xs text-gray-400" id="tip-helper">Gunakan W/A/S/D atau D-Pad untuk menjelajahi area kampus 3D.</p>
+                    <button onclick="nextPhase()" id="btn-next-phase" class="w-full sm:w-auto bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs uppercase tracking-wider py-2.5 px-5 rounded-xl transition duration-150 flex items-center justify-center gap-2">
+                        <span>Lanjut ke Malam Strategi</span> <i data-lucide="arrow-right" class="w-4 h-4"></i>
+                    </button>
+                </div>
+
+            </div>
+
+        </section>
+
+    </main>
+
+    <!-- FOOTER KREDIT -->
+    <footer class="border-t border-gray-800 bg-gray-950/80 py-4 px-4 text-center">
+        <p class="text-xs text-gray-500">&copy; 2026 Viva La Academica: Kampus Membara - 3D RPG Edition. Didukung penuh oleh Three.js.</p>
+    </footer>
+
+    <!-- LOGIKA GAMEPLAY & ENGINE UTAMA -->
+    <script>
+        // === STATE UTAMA GAME ===
+        let game = {
+            hari: 1,
+            fase: 'siang', // 'siang', 'malam', 'debat'
+            player: {
+                ap: 3,
+                maxAp: 3,
+                karisma: 50,
+                integritas: 60,
+                kopi: 2,
+                megafon: 1,
+                bukti: 0,
+                level: 1,
+                xp: 0,
+                x: 0, // Posisi 3D X
+                z: 0  // Posisi 3D Z
+            },
+            massa: {
+                jumlah: 150,
+                aggression: 30,
+                stamina: 80,
+                kedamaian: 100,
+                buff: 'Belum Bergabung'
+            },
+            rektorat: {
+                kredibilitas: 100
+            },
+            debatStep: 0,
+            sudahAmbilBuktiFakultas: [false, false]
+        };
+
+        // Lokasi Penting dalam sistem koordinat 3D
+        const locHukum = { x: -12, z: 12, code: 'H', name: "Fakultas Hukum", npc: "Sonia (Aktivis Hukum)", dialog: "Sonia: 'Analisis kami membuktikan SK kenaikan UKT ini cacat administrasi formal. Ayo kita bawa ini ke ranah hukum akademis!'", action: "Konsolidasi Aliansi Hukum (1 AP)" };
+        const locTeknik = { x: 12, z: -12, code: 'T', name: "Fakultas Teknik", npc: "Bobi (Korlap Teknik)", dialog: "Bobi: 'Yel-yel perjuangan dan massa tangguh kami siap membakar semangat di halaman rektorat!'", action: "Ajak Fakultas Teknik Bergerak (1 AP)" };
+        const locKantin = { x: 12, z: 12, code: 'K', name: "Kantin Pusat", npc: "Bu Retno (Pedagang Kantin)", dialog: "Bu Retno: 'Ibu selalu mendukung perjuangan jujur kalian. Bawa perbekalan ini untuk energi kawan-kawan ya!'", action: "Ambil Donasi Logistik (1 AP)" };
+        const locArsip = { x: -12, z: -12, code: 'R', name: "Gedung Arsip Rektorat", npc: "Laci Arsip Rahasia", dialog: "Ada tumpukan naskah draf keuangan senat tidak terkunci di atas meja kerja Wakil Rektor.", action: "Selidiki Dokumen Anggaran (1 AP)" };
+
+        const targetLocations = [locHukum, locTeknik, locKantin, locArsip];
+
+        // === ENGINE THREE.JS (3D) ===
+        let scene, camera, renderer, ground, playerMesh;
+        let buildingMeshes = [];
+        let lightAmbient, lightDirectional;
+        let isMoving = false;
+        let moveDirection = { x: 0, z: 0 };
+        let activeNPCNearby = null;
+
+        // Kontrol rotasi kamera menggunakan drag mouse
+        let isDragging = false;
+        let previousMousePosition = { x: 0, y: 0 };
+        let cameraAngleTheta = Math.PI / 4; // Sudut horizontal (Orbit)
+        let cameraAnglePhi = Math.PI / 6;   // Sudut vertikal
+        const cameraDistance = 28;
+
+        function init3D() {
+            const container = document.getElementById('canvas-container-3d');
+            const width = container.clientWidth;
+            const height = container.clientHeight || 340;
+
+            // 1. Buat Scene & Renderer
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(0x060913);
+            scene.fog = new THREE.FogExp2(0x060913, 0.015);
+
+            // 2. Kamera
+            camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 1000);
+            updateCameraPosition();
+
+            // 3. Renderer
+            renderer = new THREE.WebGLRenderer({ antialias: true });
+            renderer.setSize(width, height);
+            renderer.shadowMap.enabled = true;
+            container.appendChild(renderer.domElement);
+
+            // 4. Pencahayaan
+            lightAmbient = new THREE.AmbientLight(0xffffff, 0.45);
+            scene.add(lightAmbient);
+
+            lightDirectional = new THREE.DirectionalLight(0xfff3d1, 0.85);
+            lightDirectional.position.set(15, 30, 10);
+            lightDirectional.castShadow = true;
+            scene.add(lightDirectional);
+
+            // 5. Ground (Tanah Kampus)
+            const groundGeo = new THREE.PlaneGeometry(50, 50);
+            const groundMat = new THREE.MeshStandardMaterial({ 
+                color: 0x111625, 
+                roughness: 0.8,
+                metalness: 0.1
+            });
+            ground = new THREE.Mesh(groundGeo, groundMat);
+            ground.rotation.x = -Math.PI / 2;
+            ground.receiveShadow = true;
+            scene.add(ground);
+
+            // Grid tambahan untuk visual aspal/jalan fiktif
+            const gridHelper = new THREE.GridHelper(50, 25, 0x1f2937, 0x111827);
+            gridHelper.position.y = 0.01;
+            scene.add(gridHelper);
+
+            // 6. Membuat Model Gedung-gedung Kampus (Low Poly Klasik)
+            createBuildings();
+
+            // 7. Membuat Karakter Player (Ahmad - Bentuk Kapsul/Silinder Khas RPG)
+            const playerGeo = new THREE.CylinderGeometry(0.6, 0.6, 2, 8);
+            const playerMat = new THREE.MeshStandardMaterial({ 
+                color: 0x4f46e5, // Jaket Almamater Indigo
+                roughness: 0.4,
+                metalness: 0.3
+            });
+            playerMesh = new THREE.Mesh(playerGeo, playerMat);
+            playerMesh.position.set(0, 1, 0); // Berdiri di atas tanah
+            playerMesh.castShadow = true;
+            scene.add(playerMesh);
+
+            // Tambahkan topi almamater kuning di atas kepala silinder player
+            const hatGeo = new THREE.ConeGeometry(0.7, 0.5, 8);
+            const hatMat = new THREE.MeshStandardMaterial({ color: 0xeab308 });
+            const hatMesh = new THREE.Mesh(hatGeo, hatMat);
+            hatMesh.position.y = 1.1;
+            playerMesh.add(hatMesh);
+
+            // 8. Event Listener Mouse Drag untuk Memutar Kamera
+            container.addEventListener('mousedown', (e) => {
+                isDragging = true;
+                previousMousePosition = { x: e.clientX, y: e.clientY };
+            });
+
+            container.addEventListener('mousemove', (e) => {
+                if (!isDragging) return;
+                const deltaX = e.clientX - previousMousePosition.x;
+                const deltaY = e.clientY - previousMousePosition.y;
+
+                cameraAngleTheta -= deltaX * 0.007;
+                cameraAnglePhi = Math.max(0.1, Math.min(Math.PI / 2.1, cameraAnglePhi - deltaY * 0.007));
+
+                previousMousePosition = { x: e.clientX, y: e.clientY };
+                updateCameraPosition();
+            });
+
+            window.addEventListener('mouseup', () => { isDragging = false; });
+            
+            // Touch untuk mobile support
+            container.addEventListener('touchstart', (e) => {
+                if(e.touches.length === 1) {
+                    isDragging = true;
+                    previousMousePosition = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+                }
+            });
+            container.addEventListener('touchmove', (e) => {
+                if (!isDragging || e.touches.length !== 1) return;
+                const deltaX = e.touches[0].clientX - previousMousePosition.x;
+                const deltaY = e.touches[0].clientY - previousMousePosition.y;
+
+                cameraAngleTheta -= deltaX * 0.007;
+                cameraAnglePhi = Math.max(0.1, Math.min(Math.PI / 2.1, cameraAnglePhi - deltaY * 0.007));
+
+                previousMousePosition = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+                updateCameraPosition();
+            });
+            container.addEventListener('touchend', () => { isDragging = false; });
+
+            // 9. Resize Listener
+            window.addEventListener('resize', onWindowResize);
+        }
+
+        function createBuildings() {
+            // Hapus jika ada gedung lama
+            buildingMeshes.forEach(b => scene.remove(b));
+            buildingMeshes = [];
+
+            // 1. Gedung Hukum (H) - Kubus megah warna biru
+            createStylizedBuilding(locHukum.x, locHukum.z, 0x1e3a8a, 0x3b82f6, "H");
+
+            // 2. Gedung Teknik (T) - Struktur silinder/pabrik warna merah
+            createStylizedBuilding(locTeknik.x, locTeknik.z, 0x7f1d1d, 0xef4444, "T");
+
+            // 3. Kantin Pusat (K) - Atap miring hijau
+            createStylizedBuilding(locKantin.x, locKantin.z, 0x064e3b, 0x10b981, "K");
+
+            // 4. Gedung Arsip Rektorat (R) - Menara berjenjang kuning emas
+            createStylizedBuilding(locArsip.x, locArsip.z, 0x78350f, 0xf59e0b, "R");
+        }
+
+        // Fungsi pembantu membuat gedung berhiaskan hologram
+        function createStylizedBuilding(x, z, baseColor, neonColor, letter) {
+            const group = new THREE.Group();
+            group.position.set(x, 0, z);
+
+            // Pondasi gedung
+            const baseGeo = new THREE.BoxGeometry(5, 4, 5);
+            const baseMat = new THREE.MeshStandardMaterial({ color: baseColor, roughness: 0.6 });
+            const baseMesh = new THREE.Mesh(baseGeo, baseMat);
+            baseMesh.position.y = 2;
+            baseMesh.castShadow = true;
+            baseMesh.receiveShadow = true;
+            group.add(baseMesh);
+
+            // Atap bergaya futuristik prisma / kerucut
+            const roofGeo = new THREE.ConeGeometry(3.5, 3, 4);
+            const roofMat = new THREE.MeshStandardMaterial({ color: 0x1e293b });
+            const roofMesh = new THREE.Mesh(roofGeo, roofMat);
+            roofMesh.position.y = 5.5;
+            roofMesh.rotation.y = Math.PI / 4;
+            group.add(roofMesh);
+
+            // Lingkaran hologram neon di lantai dasar (Interaction Zone)
+            const ringGeo = new THREE.RingGeometry(4, 4.3, 16);
+            const ringMat = new THREE.MeshBasicMaterial({ 
+                color: neonColor, 
+                side: THREE.DoubleSide,
+                transparent: true,
+                opacity: 0.75
+            });
+            const ringMesh = new THREE.Mesh(ringGeo, ringMat);
+            ringMesh.rotation.x = Math.PI / 2;
+            ringMesh.position.y = 0.05;
+            group.add(ringMesh);
+
+            // Tambahkan huruf representatif mini terapung
+            const floatingGeo = new THREE.BoxGeometry(0.8, 0.8, 0.8);
+            const floatingMat = new THREE.MeshStandardMaterial({ 
+                color: neonColor,
+                emissive: neonColor,
+                emissiveIntensity: 0.6
+            });
+            const floatingMesh = new THREE.Mesh(floatingGeo, floatingMat);
+            floatingMesh.position.y = 7.5;
+            group.add(floatingMesh);
+
+            scene.add(group);
+            buildingMeshes.push(group);
+        }
+
+        function updateCameraPosition() {
+            // Menghitung koordinat kartesian berdasarkan sudut bola (Spherical Coordinates)
+            const targetX = playerMesh ? playerMesh.position.x : 0;
+            const targetZ = playerMesh ? playerMesh.position.z : 0;
+
+            camera.position.x = targetX + cameraDistance * Math.sin(cameraAngleTheta) * Math.cos(cameraAnglePhi);
+            camera.position.y = cameraDistance * Math.sin(cameraAnglePhi);
+            camera.position.z = targetZ + cameraDistance * Math.cos(cameraAngleTheta) * Math.cos(cameraAnglePhi);
+            
+            if (playerMesh) {
+                camera.lookAt(playerMesh.position.x, playerMesh.position.y + 0.5, playerMesh.position.z);
+            } else {
+                camera.lookAt(0, 1, 0);
+            }
+        }
+
+        function onWindowResize() {
+            const container = document.getElementById('canvas-container-3d');
+            if(!container) return;
+            const width = container.clientWidth;
+            const height = container.clientHeight || 340;
+
+            camera.aspect = width / height;
+            camera.updateProjectionMatrix();
+            renderer.setSize(width, height);
+        }
+
+        // Loop Animasi Three.js
+        function animate() {
+            requestAnimationFrame(animate);
+
+            // Update posisi player berdasarkan input pergerakan
+            if (isMoving && game.fase === 'siang') {
+                const speed = 0.35;
+                const nextX = playerMesh.position.x + moveDirection.x * speed;
+                const nextZ = playerMesh.position.z + moveDirection.z * speed;
+
+                // Batasi pergerakan di dalam area kampus (Radius 24 unit)
+                if (Math.abs(nextX) < 24) playerMesh.position.x = nextX;
+                if (Math.abs(nextZ) < 24) playerMesh.position.z = nextZ;
+
+                // Rotasikan player menghadap arah jalan
+                playerMesh.rotation.y = Math.atan2(moveDirection.x, moveDirection.z);
+
+                updateCameraPosition();
+                check3DProximity();
+            }
+
+            // Putar kotak neon melayang di atas setiap gedung
+            buildingMeshes.forEach(group => {
+                const floater = group.children[2]; // Index objek kubus melayang
+                if (floater) {
+                    floater.rotation.y += 0.02;
+                    floater.position.y = 7.5 + Math.sin(Date.now() * 0.003) * 0.25;
+                }
+            });
+
+            renderer.render(scene, camera);
+        }
+
+        // Cek kedekatan dengan lingkaran koordinat di area 3D
+        function check3DProximity() {
+            const pX = playerMesh.position.x;
+            const pZ = playerMesh.position.z;
+            let foundNearby = null;
+
+            for (let loc of targetLocations) {
+                const dx = pX - loc.x;
+                const dz = pZ - loc.z;
+                const distance = Math.sqrt(dx * dx + dz * dz);
+
+                // Jika jarak di bawah 5.0 unit dianggap masuk radar interaksi
+                if (distance < 5.0) {
+                    foundNearby = loc;
+                    break;
+                }
+            }
+
+            const npcName = document.getElementById('npc-name');
+            const npcDialog = document.getElementById('npc-dialog');
+            const npcAvatar = document.getElementById('npc-avatar');
+            const actionContainer = document.getElementById('npc-action-container');
+
+            if (foundNearby) {
+                activeNPCNearby = foundNearby;
+                npcAvatar.innerText = foundNearby.code;
+                npcName.innerText = `${foundNearby.name} - ${foundNearby.npc}`;
+                npcDialog.innerText = foundNearby.dialog;
+
+                // Buat tombol aksi dinamis
+                actionContainer.innerHTML = `
+                    <button onclick="trigger3DInteraction('${foundNearby.code}')" class="bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-[11px] py-1.5 px-3 rounded-lg flex items-center gap-1 transition-all">
+                        <i data-lucide="play-circle" class="w-3.5 h-3.5"></i> ${foundNearby.action}
+                    </button>
+                `;
+            } else {
+                activeNPCNearby = null;
+                npcAvatar.innerText = '?';
+                npcName.innerText = "Papan Informasi Kampus 3D";
+                npcDialog.innerText = `"Gunakan tombol navigasi untuk mengarahkan Ahmad mendekati gedung berkubah hologram warna-warni. Setiap kali Anda berinteraksi dengan wilayah atau NPC, akan memakan biaya 1 AP!"`;
+                actionContainer.innerHTML = '';
+            }
+            lucide.createIcons();
+        }
+
+        function trigger3DInteraction(code) {
+            if (code === 'H') {
+                if (executeAP()) {
+                    game.massa.buff = 'Hukum';
+                    game.massa.stamina = Math.min(100, game.massa.stamina + 10);
+                    game.player.integritas = Math.min(100, game.player.integritas + 15);
+                    game.massa.jumlah += 30;
+                    addXP(30);
+                    showToast("Fakultas Hukum resmi bergabung! Buff Mental Shield aktif.", "success");
+                    updateUI();
+                }
+            } else if (code === 'T') {
+                if (executeAP()) {
+                    game.massa.buff = 'Teknik';
+                    game.massa.stamina = Math.min(100, game.massa.stamina + 20);
+                    game.player.karisma = Math.min(100, game.player.karisma + 15);
+                    game.massa.jumlah += 50;
+                    addXP(30);
+                    showToast("Fakultas Teknik bersatu! Buff High Orasi aktif.", "success");
+                    updateUI();
+                }
+            } else if (code === 'K') {
+                if (executeAP()) {
+                    game.player.kopi++;
+                    game.player.megafon++;
+                    addXP(10);
+                    showToast("Memperoleh 1 Kopi Advokasi & 1 Megafon Megah!", "success");
+                    updateUI();
+                }
+            } else if (code === 'R') {
+                if (game.sudahAmbilBuktiFakultas[0]) {
+                    showToast("Anda sudah mengambil berkas dari laci ini.", "warning");
+                    return;
+                }
+                if (executeAP()) {
+                    game.player.bukti = Math.min(2, game.player.bukti + 1);
+                    game.sudahAmbilBuktiFakultas[0] = true;
+                    addXP(25);
+                    showToast("Berhasil mendapatkan Berkas Bukti Transparansi Anggaran!", "success");
+                    updateUI();
+                }
+            }
+        }
+
+        // Fungsi tombol gerakan layar sentuh / DPAD
+        function startMove(dx, dz) {
+            isMoving = true;
+            moveDirection = { x: dx, z: dz };
+        }
+
+        function stopMove() {
+            isMoving = false;
+            moveDirection = { x: 0, z: 0 };
+        }
+
+        // === NOTIFIKASI SYSTEM ===
+        function showToast(text, type = "info") {
+            const toast = document.getElementById('toast-notif');
+            const toastText = document.getElementById('toast-text');
+            toastText.innerText = text;
+            toast.classList.remove('hidden', 'translate-y-2', 'opacity-0');
+            toast.classList.add('translate-y-0', 'opacity-100');
+
+            setTimeout(() => {
+                toast.classList.add('translate-y-2', 'opacity-0');
+                setTimeout(() => {
+                    toast.classList.add('hidden');
+                }, 300);
+            }, 3000);
+        }
+
+        // === MANAGEMENT XP & LEVEL PERJUANGAN ===
+        function addXP(amount) {
+            game.player.xp += amount;
+            if (game.player.xp >= 100) {
+                game.player.level++;
+                game.player.xp = game.player.xp - 100;
+                game.player.maxAp = Math.min(5, game.player.maxAp + 1);
+                game.player.ap = game.player.maxAp;
+                showToast(`Level Perjuangan BEM Naik! Lv ${game.player.level}. Max AP bertambah menjadi ${game.player.maxAp}!`, "success");
+            }
+            updateUI();
+        }
+
+        // === PENGURANGAN AP ===
+        function executeAP() {
+            if (game.player.ap < 1) {
+                showToast("Action Points (AP) Anda tidak mencukupi untuk melakukan aksi ini!", "warning");
+                return false;
+            }
+            game.player.ap--;
+            updateUI();
+            return true;
+        }
+
+        // === UPDATE VIEW DAN UI ===
+        function updateUI() {
+            // Player Stats
+            document.getElementById('stat-level').innerText = `Lv ${game.player.level}`;
+            document.getElementById('stat-xp-display').innerText = `XP: ${game.player.xp} / 100`;
+            document.getElementById('stat-ap').innerText = `${game.player.ap} / ${game.player.maxAp}`;
+            document.getElementById('bar-ap').style.width = `${(game.player.ap / game.player.maxAp) * 100}%`;
+
+            document.getElementById('stat-karisma').innerText = `${game.player.karisma} / 100`;
+            document.getElementById('bar-karisma').style.width = `${game.player.karisma}%`;
+
+            document.getElementById('stat-integritas').innerText = `${game.player.integritas} / 100`;
+            document.getElementById('bar-integritas').style.width = `${game.player.integritas}%`;
+
+            // Inventory
+            document.getElementById('inv-kopi').innerText = `x${game.player.kopi}`;
+            document.getElementById('inv-megafon').innerText = `x${game.player.megafon}`;
+
+            // Massa
+            document.getElementById('stat-massa-jumlah').innerText = `${game.massa.jumlah} Orang`;
+            document.getElementById('stat-massa-kedamaian').innerText = `${game.massa.kedamaian}%`;
+            document.getElementById('stat-massa-aggression').innerText = `${game.massa.aggression} / 100`;
+            document.getElementById('bar-massa-aggression').style.width = `${game.massa.aggression}%`;
+            document.getElementById('stat-massa-stamina').innerText = `${game.massa.stamina} / 100`;
+            document.getElementById('bar-massa-stamina').style.width = `${game.massa.stamina}%`;
+
+            // Buff Display
+            const buffBadge = document.getElementById('display-buff');
+            if (game.massa.buff === 'Hukum') {
+                buffBadge.className = "text-[10px] font-bold uppercase px-2 py-0.5 rounded bg-indigo-500/20 text-indigo-400 border border-indigo-500/30";
+                buffBadge.innerText = "Hukum (High Mental)";
+            } else if (game.massa.buff === 'Teknik') {
+                buffBadge.className = "text-[10px] font-bold uppercase px-2 py-0.5 rounded bg-red-500/20 text-red-400 border border-red-500/30";
+                buffBadge.innerText = "Teknik (High Orasi)";
+            } else {
+                buffBadge.className = "text-[10px] font-bold uppercase px-2 py-0.5 rounded bg-gray-800 text-gray-400 border border-gray-700";
+                buffBadge.innerText = "Belum Bergabung";
+            }
+
+            document.getElementById('stat-bukti').innerText = `${game.player.bukti} / 2`;
+            document.getElementById('display-hari').innerText = `Hari ${game.hari}`;
+
+            // Fase & Screen Views
+            const faseText = document.getElementById('display-fase');
+            const faseIcon = document.getElementById('display-fase-icon');
+
+            document.getElementById('view-rpg-map').classList.add('hidden');
+            document.getElementById('view-malam').classList.add('hidden');
+            document.getElementById('view-debat').classList.add('hidden');
+            document.getElementById('view-result').classList.add('hidden');
+            document.getElementById('view-footer').classList.remove('hidden');
+
+            const screenTitle = document.getElementById('screen-title');
+            const screenSubtitle = document.getElementById('screen-subtitle');
+            const helperTip = document.getElementById('tip-helper');
+            const nextBtn = document.getElementById('btn-next-phase');
+
+            // Set up environment 3D lighting dynamically based on phase
+            if (scene) {
+                if (game.fase === 'siang') {
+                    scene.background.setHex(0x060913);
+                    scene.fog.color.setHex(0x060913);
+                    lightAmbient.color.setHex(0xffffff);
+                    lightAmbient.intensity = 0.5;
+                    lightDirectional.color.setHex(0xfff3d1);
+                    lightDirectional.intensity = 0.85;
+                } else {
+                    // Merubah visual 3D menjadi nuansa gelap malam ungu/cyber
+                    scene.background.setHex(0x020308);
+                    scene.fog.color.setHex(0x020308);
+                    lightAmbient.color.setHex(0x312e81);
+                    lightAmbient.intensity = 0.3;
+                    lightDirectional.color.setHex(0x818cf8);
+                    lightDirectional.intensity = 0.35;
+                }
+            }
+
+            if (game.fase === 'siang') {
+                document.getElementById('view-rpg-map').classList.remove('hidden');
+                faseText.innerText = "Siang (Eksplorasi)";
+                faseText.className = "text-sm font-bold uppercase tracking-wider text-amber-400";
+                faseIcon.innerHTML = `<i data-lucide="sun" class="text-amber-400 w-4 h-4"></i>`;
+
+                screenTitle.innerHTML = `<i data-lucide="compass" class="text-indigo-400 mr-1"></i> Kampus 3D Eksplorasi`;
+                screenSubtitle.innerText = "Dekati salah satu dari 4 gedung hologram universitas di peta 3D untuk memulai interaksi.";
+                helperTip.innerText = "Gunakan sisa AP Anda sebelum beralih ke malam strategi.";
+                nextBtn.innerHTML = `<span>Lanjut Malam Strategi</span> <i data-lucide="arrow-right" class="w-4 h-4"></i>`;
+                
+                // Memicu trigger render ukuran canvas yang pas
+                setTimeout(onWindowResize, 50);
+            } else if (game.fase === 'malam') {
+                document.getElementById('view-malam').classList.remove('hidden');
+                faseText.innerText = "Malam (Strategi)";
+                faseText.className = "text-sm font-bold uppercase tracking-wider text-indigo-400";
+                faseIcon.innerHTML = `<i data-lucide="moon" class="text-indigo-400 w-4 h-4"></i>`;
+
+                screenTitle.innerHTML = `<i data-lucide="moon" class="text-indigo-400 mr-1"></i> Rapat Malam Siasat`;
+                screenSubtitle.innerText = "Putuskan prioritas taktik untuk esok hari bersama jajaran aliansi.";
+                helperTip.innerText = "Malam adalah fase transisi sebelum memajukan hari.";
+                nextBtn.innerHTML = `<span>Majukan Hari Baru</span> <i data-lucide="arrow-right" class="w-4 h-4"></i>`;
+            } else if (game.fase === 'debat') {
+                document.getElementById('view-debat').classList.remove('hidden');
+                document.getElementById('view-footer').classList.add('hidden');
+                faseText.innerText = "Sidang Debat BEM vs Rektorat";
+                faseText.className = "text-sm font-bold uppercase tracking-wider text-red-500 animate-pulse";
+                faseIcon.innerHTML = `<i data-lucide="gavel" class="text-red-500 w-4 h-4"></i>`;
+
+                screenTitle.innerHTML = `<i data-lucide="shield-alert" class="text-red-500 mr-1"></i> Debat Terbuka: Kenaikan UKT`;
+                screenSubtitle.innerText = "Adu argumentasi secara rasional guna menaklukkan kredibilitas birokrat.";
+                renderDebatScenario();
+            }
+
+            if (game.fase === 'debat') {
+                document.getElementById('stat-rektorat').innerText = `${game.rektorat.kredibilitas} / 100`;
+                document.getElementById('bar-rektorat').style.width = `${game.rektorat.kredibilitas}%`;
+            }
+
+            checkGameConditions();
+            lucide.createIcons();
+        }
+
+        // === FUNGSI ITEM ===
+        function useItem(itemName) {
+            if (itemName === 'kopi') {
+                if (game.player.kopi > 0) {
+                    if (game.player.ap < game.player.maxAp) {
+                        game.player.kopi--;
+                        game.player.ap = Math.min(game.player.maxAp, game.player.ap + 1);
+                        showToast("Kopi diminum! Tenaga pulih, +1 AP.", "success");
+                        updateUI();
+                    } else {
+                        showToast("Action Points (AP) sudah penuh!", "warning");
+                    }
+                } else {
+                    showToast("Stok kopi habis!", "warning");
+                }
+            } else if (itemName === 'megafon') {
+                if (game.player.megafon > 0) {
+                    game.player.megafon--;
+                    game.massa.stamina = Math.min(100, game.massa.stamina + 30);
+                    showToast("Menggunakan Megafon Megah! Stamina Massa pulih +30.", "success");
+                    updateUI();
+                } else {
+                    showToast("Stok Megafon habis!", "warning");
+                }
+            }
+        }
+
+        // === MALAM STRATEGI ===
+        function malamStrategi(choice) {
+            if (choice === 'karisma') {
+                game.player.karisma = Math.min(100, game.player.karisma + 15);
+                addXP(20);
+                showToast("Retorika matang dibentuk, Karisma bertambah +15.", "success");
+            } else if (choice === 'massa') {
+                game.massa.stamina = Math.min(100, game.massa.stamina + 25);
+                game.massa.aggression = Math.max(0, game.massa.aggression - 15);
+                addXP(20);
+                showToast("Mimbar bebas menguatkan mental massa aksi.", "success");
+            }
+            nextPhase();
+        }
+
+        // === TRANSISI WAKTU ===
+        function nextPhase() {
+            if (game.fase === 'siang') {
+                game.fase = 'malam';
+                showToast("Hari meredup menuju malam strategi.", "info");
+            } else if (game.fase === 'malam') {
+                if (game.hari === 3) {
+                    game.fase = 'debat';
+                    game.debatStep = 1;
+                    showToast("Sidang Debat Akbar dibuka!", "warning");
+                } else {
+                    game.hari++;
+                    game.fase = 'siang';
+                    game.player.ap = game.player.maxAp;
+                    game.massa.aggression = Math.min(100, game.massa.aggression + 15);
+                    showToast(`Hari ${game.hari} dimulai! Tensi kampus kian hangat.`, "info");
+                    
+                    // Reset posisi player kembali ke tengah saat ganti hari baru
+                    if(playerMesh) {
+                        playerMesh.position.set(0, 1, 0);
+                        updateCameraPosition();
+                    }
+                }
+            }
+            updateUI();
+        }
+
+        // === LOGIKA DIALOG & DEBAT SCENARIO ===
+        function renderDebatScenario() {
+            const speechText = document.getElementById('rektorat-speech');
+            const optionsContainer = document.getElementById('debat-options');
+            optionsContainer.innerHTML = '';
+
+            if (game.debatStep === 1) {
+                speechText.innerText = `"Kebijakan kenaikan UKT dilakukan atas dasar keterbatasan dana operasional dan demi meningkatkan mutu akademik kampus."`;
+
+                // Opsi 1: Berbasis Data (Butuh Bukti)
+                const opt1 = document.createElement('button');
+                opt1.className = "w-full text-left bg-gray-900 hover:bg-gray-800 border border-indigo-500/30 p-3 rounded-lg text-xs font-semibold text-gray-200 transition-all flex items-center justify-between";
+                if (game.player.bukti >= 1) {
+                    opt1.innerHTML = `<span><strong>1. Opsi Berbasis Data:</strong> Tunjukkan data pengeluaran Rektorat yang tidak sinkron.</span> <span class="text-emerald-400 text-[10px] font-bold shrink-0 uppercase ml-2 flex items-center gap-1"><i data-lucide="check" class="w-3 h-3"></i> Bukti Siap</span>`;
+                    opt1.onclick = function() {
+                        game.rektorat.kredibilitas = Math.max(0, game.rektorat.kredibilitas - 45);
+                        game.player.integritas = Math.min(100, game.player.integritas + 15);
+                        game.player.bukti--;
+                        showToast("Kredibilitas Rektorat jatuh bebas!", "success");
+                        game.debatStep = 2;
+                        updateUI();
+                    };
+                } else {
+                    opt1.innerHTML = `<span><strong>1. Opsi Berbasis Data:</strong> (Dibutuhkan berkas bukti yang dicari di Gedung Arsip).</span> <span class="text-red-400 text-[10px] font-bold shrink-0 uppercase ml-2 flex items-center gap-1"><i data-lucide="lock" class="w-3.5 h-3.5"></i> Terkunci</span>`;
+                    opt1.disabled = true;
+                    opt1.className += " opacity-50 cursor-not-allowed";
+                }
+
+                // Opsi 2: Orasi Populis
+                const opt2 = document.createElement('button');
+                opt2.className = "w-full text-left bg-gray-900 hover:bg-gray-800 border border-purple-500/30 p-3 rounded-lg text-xs font-semibold text-gray-200 transition-all flex items-center justify-between";
+                const bonusText = game.massa.buff === 'Teknik' ? " (+Bonus Orasi Teknik)" : "";
+                opt2.innerHTML = `<span><strong>2. Opsi Orasi Populis:</strong> Suarakan kesusahan wali murid akibat UKT mahal.${bonusText}</span>`;
+                opt2.onclick = function() {
+                    const bonus = game.massa.buff === 'Teknik' ? 20 : 0;
+                    game.player.karisma = Math.min(100, game.player.karisma + 15 + (bonus/2));
+                    game.massa.stamina = Math.min(100, game.massa.stamina + 20 + bonus);
+                    game.rektorat.kredibilitas = Math.max(0, game.rektorat.kredibilitas - 20);
+                    showToast("Orasi populis membangkitkan kebersamaan aliansi!", "success");
+                    game.debatStep = 2;
+                    updateUI();
+                };
+
+                // Opsi 3: Taktik Agresif
+                const opt3 = document.createElement('button');
+                opt3.className = "w-full text-left bg-gray-900 hover:bg-gray-800 border border-red-500/30 p-3 rounded-lg text-xs font-semibold text-gray-200 transition-all flex items-center justify-between";
+                opt3.innerHTML = `<span><strong>3. Opsi Agresif:</strong> Tuduh rektorat sengaja menyembunyikan anggaran subsidi!</span>`;
+                opt3.onclick = function() {
+                    game.massa.aggression = Math.min(100, game.massa.aggression + 25);
+                    game.massa.kedamaian = Math.max(0, game.massa.kedamaian - 20);
+                    game.rektorat.kredibilitas = Math.max(0, game.rektorat.kredibilitas - 30);
+                    showToast("Aksi memanas, massa aksi mulai bergemuruh!", "warning");
+                    game.debatStep = 2;
+                    updateUI();
+                };
+
+                optionsContainer.appendChild(opt1);
+                optionsContainer.appendChild(opt2);
+                optionsContainer.appendChild(opt3);
+
+            } else if (game.debatStep === 2) {
+                speechText.innerText = `"Kami tidak mungkin melanggar aturan yang sudah disepakati oleh Senat Kampus secara sepihak."`;
+
+                // Finale Opsi 1: Tuntut Penandatanganan Pakta
+                const opt4 = document.createElement('button');
+                opt4.className = "w-full text-left bg-gray-900 hover:bg-gray-800 border border-indigo-500/30 p-3 rounded-lg text-xs font-semibold text-gray-200 transition-all flex items-center justify-between";
+                if (game.player.karisma >= 60) {
+                    opt4.innerHTML = `<span><strong>1. Paksa Pakta Integritas:</strong> Desak Rektorat menandatangani berkas penangguhan sekarang.</span> <span class="text-emerald-400 text-[10px] font-bold shrink-0 uppercase ml-2 flex items-center gap-1"><i data-lucide="check" class="w-3.5 h-3.5"></i> Karisma Cukup</span>`;
+                    opt4.onclick = function() {
+                        game.rektorat.kredibilitas = 0;
+                        game.debatStep = 3;
+                        updateUI();
+                    };
+                } else {
+                    opt4.innerHTML = `<span><strong>1. Paksa Pakta Integritas:</strong> Desak Rektorat (Dibutuhkan Karisma minimal 60).</span> <span class="text-red-400 text-[10px] font-bold shrink-0 uppercase ml-2 flex items-center gap-1"><i data-lucide="lock" class="w-3.5 h-3.5"></i> Terkunci</span>`;
+                    opt4.disabled = true;
+                    opt4.className += " opacity-50 cursor-not-allowed";
+                }
+
+                // Finale Opsi 2: Gugatan Formal
+                const opt5 = document.createElement('button');
+                opt5.className = "w-full text-left bg-gray-900 hover:bg-gray-800 border border-emerald-500/30 p-3 rounded-lg text-xs font-semibold text-gray-200 transition-all flex items-center justify-between";
+                if (game.massa.buff === 'Hukum') {
+                    opt5.innerHTML = `<span><strong>2. Layangkan Gugatan Aliansi Hukum:</strong> Gunakan draf hukum formal untuk menjatuhkan klaim senat.</span> <span class="text-emerald-400 text-[10px] font-bold shrink-0 uppercase ml-2 flex items-center gap-1"><i data-lucide="check" class="w-3.5 h-3.5"></i> Aliansi Aktif</span>`;
+                    opt5.onclick = function() {
+                        game.rektorat.kredibilitas = 0;
+                        game.player.integritas = Math.min(100, game.player.integritas + 20);
+                        game.debatStep = 3;
+                        updateUI();
+                    };
+                } else {
+                    opt5.innerHTML = `<span><strong>2. Layangkan Gugatan Aliansi Hukum:</strong> (Membutuhkan Buff Aliansi Hukum).</span> <span class="text-red-400 text-[10px] font-bold shrink-0 uppercase ml-2 flex items-center gap-1"><i data-lucide="lock" class="w-3.5 h-3.5"></i> Terkunci</span>`;
+                    opt5.disabled = true;
+                    opt5.className += " opacity-50 cursor-not-allowed";
+                }
+
+                // Finale Opsi 3: Ultimatum Mogok Total
+                const opt6 = document.createElement('button');
+                opt6.className = "w-full text-left bg-gray-900 hover:bg-gray-800 border border-red-500/30 p-3 rounded-lg text-xs font-semibold text-gray-200 transition-all flex items-center justify-between";
+                opt6.innerHTML = `<span><strong>3. Ultimatum Mogok Kuliah:</strong> Berikan ancaman mogok belajar total di seluruh fakultas!</span>`;
+                opt6.onclick = function() {
+                    game.massa.aggression = Math.min(100, game.massa.aggression + 25);
+                    game.massa.kedamaian = Math.max(0, game.massa.kedamaian - 35);
+                    game.rektorat.kredibilitas = Math.max(0, game.rektorat.kredibilitas - 40);
+                    if (game.massa.kedamaian > 0 && game.massa.aggression < 100) {
+                        game.debatStep = 3;
+                    }
+                    updateUI();
+                };
+
+                optionsContainer.appendChild(opt4);
+                optionsContainer.appendChild(opt5);
+                optionsContainer.appendChild(opt6);
+            }
+        }
+
+        // === EVALUASI KONDISI AKHIR GAME ===
+        function checkGameConditions() {
+            const viewRpg = document.getElementById('view-rpg-map');
+            const viewMalam = document.getElementById('view-malam');
+            const viewDebat = document.getElementById('view-debat');
+            const viewResult = document.getElementById('view-result');
+            const viewFooter = document.getElementById('view-footer');
+
+            const iconContainer = document.getElementById('result-icon-container');
+            const resultTitle = document.getElementById('result-title');
+            const resultDesc = document.getElementById('result-desc');
+
+            // 1. GAME OVER (KEDAMAIAN HABIS ATAU AMARAH MAKSIMAL)
+            if (game.massa.kedamaian <= 0 || game.massa.aggression >= 100) {
+                viewRpg.classList.add('hidden');
+                viewMalam.classList.add('hidden');
+                viewDebat.classList.add('hidden');
+                viewFooter.classList.add('hidden');
+                viewResult.classList.remove('hidden');
+
+                iconContainer.className = "w-20 h-20 mx-auto rounded-full flex items-center justify-center bg-red-950 text-red-500 border border-red-500/30 animate-bounce";
+                iconContainer.innerHTML = `<i data-lucide="skull" class="w-10 h-10"></i>`;
+                
+                resultTitle.innerText = "Perjuangan Berakhir Ricuh (Game Over)";
+                resultDesc.innerText = "Tensi yang terlalu panas memicu gesekan di luar kendali korlap aksi. Pihak berwajib membubarkan gerakan secara paksa karena hilangnya ketertiban. Perjuangan mahasiswa gagal mencapai kesepakatan.";
+                return;
+            }
+
+            // 2. KEMENANGAN MUTLAK
+            if (game.fase === 'debat' && game.debatStep === 3 && game.rektorat.kredibilitas <= 0) {
+                viewRpg.classList.add('hidden');
+                viewMalam.classList.add('hidden');
+                viewDebat.classList.add('hidden');
+                viewFooter.classList.add('hidden');
+                viewResult.classList.remove('hidden');
+
+                iconContainer.className = "w-20 h-20 mx-auto rounded-full flex items-center justify-center bg-emerald-950 text-emerald-500 border border-emerald-500/30 animate-bounce";
+                iconContainer.innerHTML = `<i data-lucide="trophy" class="w-10 h-10"></i>`;
+
+                resultTitle.innerText = "Kemenangan Reformasi Kampus!";
+                resultDesc.innerText = `Luar biasa! Ahmad (Lv ${game.player.level}) berhasil memimpin aliansi mahasiswa melumpuhkan retorika keras birokrasi kampus. Rektorat resmi menandatangani pakta penangguhan kenaikan UKT sepihak di hadapan ${game.massa.jumlah} massa aksi! Hidup Mahasiswa!`;
+                return;
+            }
+
+            // 3. KALAH RETORIKA (DEBAT BERAKHIR TANPA REKTORAT KREDIBILITAS 0)
+            if (game.fase === 'debat' && game.debatStep === 3 && game.rektorat.kredibilitas > 0) {
+                viewRpg.classList.add('hidden');
+                viewMalam.classList.add('hidden');
+                viewDebat.classList.add('hidden');
+                viewFooter.classList.add('hidden');
+                viewResult.classList.remove('hidden');
+
+                iconContainer.className = "w-20 h-20 mx-auto rounded-full flex items-center justify-center bg-yellow-950 text-yellow-500 border border-yellow-500/30";
+                iconContainer.innerHTML = `<i data-lucide="frown" class="w-10 h-10"></i>`;
+
+                resultTitle.innerText = "Hasil Menggantung Tanpa Keputusan";
+                resultDesc.innerText = "Sidang ditutup oleh Rektorat karena argumen aliansi dinilai kurang memiliki landasan rasional atau draf hukum yang memadai. Mahasiswa terpaksa membubarkan diri dengan tangan hampa.";
+                return;
+            }
+        }
+
+        // === RESET GAME ===
+        function resetGame() {
+            game = {
+                hari: 1,
+                fase: 'siang',
+                player: {
+                    ap: 3,
+                    maxAp: 3,
+                    karisma: 50,
+                    integritas: 60,
+                    kopi: 2,
+                    megafon: 1,
+                    bukti: 0,
+                    level: 1,
+                    xp: 0,
+                    x: 0,
+                    z: 0
+                },
+                massa: {
+                    jumlah: 150,
+                    aggression: 30,
+                    stamina: 80,
+                    kedamaian: 100,
+                    buff: 'Belum Bergabung'
+                },
+                rektorat: {
+                    kredibilitas: 100
+                },
+                debatStep: 0,
+                sudahAmbilBuktiFakultas: [false, false]
+            };
+            showToast("Perjuangan diulang kembali ke Hari 1!", "info");
+            
+            // Setel ulang posisi mesh player ke pusat
+            if (playerMesh) {
+                playerMesh.position.set(0, 1, 0);
+            }
+            cameraAngleTheta = Math.PI / 4;
+            cameraAnglePhi = Math.PI / 6;
+            updateCameraPosition();
+            updateUI();
+        }
+
+        // === KENDALI KEYBOARD ===
+        const keyState = {};
+        window.addEventListener('keydown', (e) => {
+            if (game.fase !== 'siang') return;
+            keyState[e.key.toLowerCase()] = true;
+            updateMovementFromKeys();
+        });
+
+        window.addEventListener('keyup', (e) => {
+            if (game.fase !== 'siang') return;
+            keyState[e.key.toLowerCase()] = false;
+            updateMovementFromKeys();
+        });
+
+        function updateMovementFromKeys() {
+            let dx = 0;
+            let dz = 0;
+
+            if (keyState['w'] || keyState['arrowup']) dz -= 1;
+            if (keyState['s'] || keyState['arrowdown']) dz += 1;
+            if (keyState['a'] || keyState['arrowleft']) dx -= 1;
+            if (keyState['d'] || keyState['arrowright']) dx += 1;
+
+            if (dx !== 0 || dz !== 0) {
+                // Lakukan normalisasi vektor arah agar kecepatan diagonal seragam
+                const length = Math.sqrt(dx * dx + dz * dz);
+                startMove(dx / length, dz / length);
+            } else {
+                stopMove();
+            }
+        }
+
+        // === WINDOW ONLOAD ENGINE KICKSTARTER ===
+        window.onload = function() {
+            init3D();
+            animate();
+            updateUI();
+        }
+    </script>
+</body>
+</html>
